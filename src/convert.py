@@ -9,10 +9,10 @@ INTENTIONAL LIMITATIONS (candidates will fix):
 import csv
 import json
 import re
-from typing import List
+from typing import List, Set
 
 ISO_8601_REGEX = re.compile(
-    r"^\d{4}-\d{2}-\d{2}"  # Date part
+    r"^\d{4}-\d{2}-\d{2}"  # Date part (YYY-MM-DD)
     r"(T\d{2}:\d{2}:\d{2}(\.\d{1,6})?(Z|[+-]\d{2}:\d{2})?)?$"  # Optional part
 )
 
@@ -25,7 +25,8 @@ def _is_iso8601(date_str: str) -> bool:
 def csv_to_json_lines(csv_path: str) -> str:
     """Return the CSV file converted to JSONL string."""
     rows: List[str] = []
-    seen_ids = set()
+    seen_ids: Set[str] = set()
+
     with open(csv_path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
