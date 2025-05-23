@@ -1,36 +1,29 @@
 # Claritype Intern Take‑home – CSV → JSON Converter
 
-## Context
-`src/convert.py` converts a CSV file of dental visits into JSON Lines (one
-JSON object per line). The current implementation passes a smoke test but
-**fails** on real‑world edge cases.
+## Patch Explanation
 
-## Your Task
-1. Run **`pytest`** – three tests fail.
-2. Fix `src/convert.py` so **all tests pass** without breaking the public
-   function signature (`csv_to_json_lines(path) -> str`).
-3. Keep your patch concise (≈ ≤30 added lines).
-4. Add **≤150 words** explaining:
-   * Root cause(s)
-   * Your fix
-   * Further hardening you’d do in production.
+### What was Wrong
 
-You may search the web or use ChatGPT, but the explanation must be yours.
+- The original function did not strictly enforce ISO-8601 format (`YYYY-MM-DD`).
+- Duplicate `visit_id` entries were allowed without raising an exception.
+- Empty cost fields should have been treated as `None` but were incorrectly `0.0`.
 
-## Setup (Python ≥3.8)
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-pytest          # should show 3 failures initially
-```
+### Fixes
 
-## Data contract
-* **visit_id** – unique string (raise `ValueError` on duplicates)
-* **visit_date** – ISO 8601 `YYYY-MM-DD` (raise on invalid formats)
-* **cost** – number or `null` if empty
+- I used regular expression matching to ensure that the pattern of the input date
+  complies with ISO-8601. I knew about regex but was unfamiliar with formatting
+  using `re` in Python, so I searched how they work on Google.
+- I used a set to track all seen `visit_id` entries. For each row in the CSV,
+  if it was already seen, raise an exception.
+- When adding `"cost"` to the JSON, instead of adding `0.0` if that value was not
+  provided, I changed it to `None`.
 
-## Submission
-* Patch / GitHub link
-* 150‑word explanation
-* (Optional) ≤3‑min Loom or MP4 walkthrough
+### Follow-up Improvements
+
+- I think ISO-8601 has more options such as timestamp. I added some optional
+  parameters in the regex that would handle such cases, but did not test them. In
+  the future, I would add more test cases to make sure my function is fully
+  compliant to ISO-8601.
+- Improve error handling. So far I just raise ValueError with a message. Ideally,
+  I would define custom error classes and could provide more details in the error
+  message such as CSV row number.
